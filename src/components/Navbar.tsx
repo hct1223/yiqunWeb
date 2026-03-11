@@ -5,15 +5,20 @@ import { cn } from '../lib/utils';
 import { motion, AnimatePresence } from 'motion/react';
 
 const navItems = [
-  { name: '首页', path: '/#top' },
-  { name: '行业解决方案', path: '/#solutions' },
-  { name: '关于我们', path: '/#about' },
+  { name: '首页', path: '/' },
+  { name: '行业解决方案', path: '/solutions' },
+  { name: '客户案例', path: '/cases' },
+  { name: 'AI应用', path: '/ai' },
+  { name: '关于我们', path: '/about' },
 ];
 
 export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const location = useLocation();
+
+  // 判断是否在首页
+  const isHomePage = location.pathname === '/';
 
   useEffect(() => {
     const handleScroll = () => {
@@ -23,8 +28,13 @@ export default function Navbar() {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
+  // 在非首页页面，始终显示白色背景
+  const shouldShowSolidBg = !isHomePage || scrolled;
+
   const handleNavClick = (e: React.MouseEvent<HTMLAnchorElement>, path: string) => {
+    // 路由路径不需要特殊处理，React Router会处理
     if (path.startsWith('/#')) {
+      // 首页锚点链接
       const id = path.substring(2);
       const element = document.getElementById(id);
       if (element) {
@@ -32,24 +42,33 @@ export default function Navbar() {
         element.scrollIntoView({ behavior: 'smooth' });
         setIsOpen(false);
       }
+    } else if (path === '/') {
+      // 首页链接，滚动到顶部
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      setIsOpen(false);
+    } else {
+      // 其他页面链接，关闭移动菜单
+      setIsOpen(false);
     }
   };
 
   return (
     <nav className={cn(
       'fixed top-0 left-0 right-0 z-50 transition-all duration-300',
-      scrolled ? 'bg-white/90 backdrop-blur-md shadow-sm py-3' : 'bg-transparent py-5'
+      shouldShowSolidBg ? 'bg-white/90 backdrop-blur-md shadow-sm py-3' : 'bg-transparent py-5'
     )}>
       <div className="container-custom flex items-center justify-between">
         <a href="#top" onClick={(e) => handleNavClick(e, '/#top')} className="flex items-center gap-2 group">
-          <div className="w-10 h-10 bg-primary rounded-lg flex items-center justify-center text-white font-bold text-xl group-hover:rotate-12 transition-transform">
-            蚁
-          </div>
+          <img
+            src="/logos/ants.png"
+            alt="蚁群科技"
+            className="w-16 h-10 object-contain group-hover:rotate-12 transition-transform"
+          />
           <div className="flex flex-col">
-            <span className={cn("font-bold text-lg leading-none", !scrolled ? "text-white" : "text-slate-900")}>
+            <span className={cn("font-bold text-lg leading-none", !shouldShowSolidBg ? "text-white" : "text-slate-900")}>
               蚁群科技
             </span>
-            <span className={cn("text-[10px] tracking-widest opacity-70 uppercase", !scrolled ? "text-white" : "text-slate-500")}>
+            <span className={cn("text-[10px] tracking-widest opacity-70 uppercase", !shouldShowSolidBg ? "text-white" : "text-slate-500")}>
               YI QUN TECHNOLOGY
             </span>
           </div>
@@ -64,25 +83,17 @@ export default function Navbar() {
               onClick={(e) => handleNavClick(e, item.path)}
               className={cn(
                 "text-sm font-medium transition-colors hover:text-primary",
-                !scrolled ? "text-white/90" : "text-slate-600"
+                !shouldShowSolidBg ? "text-white/90" : "text-slate-600"
               )}
             >
               {item.name}
             </a>
           ))}
-          <a href="#contact" onClick={(e) => handleNavClick(e, '/#contact')} className={cn(
-            "px-5 py-2 rounded-full text-sm font-semibold transition-all",
-            scrolled 
-              ? "bg-primary text-white hover:bg-primary-dark" 
-              : "bg-white text-primary hover:bg-slate-100"
-          )}>
-            立即咨询
-          </a>
         </div>
 
         {/* Mobile Toggle */}
-        <button 
-          className={cn("lg:hidden p-2 rounded-md", !scrolled && location.pathname === '/' ? "text-white" : "text-slate-900")}
+        <button
+          className={cn("lg:hidden p-2 rounded-md", !shouldShowSolidBg && isHomePage ? "text-white" : "text-slate-900")}
           onClick={() => setIsOpen(!isOpen)}
         >
           {isOpen ? <X size={24} /> : <Menu size={24} />}
@@ -110,13 +121,6 @@ export default function Navbar() {
                   <ChevronRight size={18} className="opacity-50" />
                 </a>
               ))}
-              <a 
-                href="#contact" 
-                onClick={(e) => handleNavClick(e, '/#contact')}
-                className="mt-4 bg-primary text-white text-center py-3 rounded-xl font-bold"
-              >
-                立即咨询
-              </a>
             </div>
           </motion.div>
         )}
